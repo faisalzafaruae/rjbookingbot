@@ -22,49 +22,13 @@ bot.localePath(path.join(__dirname, './locale'));
 
 var reco = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/f9a13ee6-5e03-423a-ba25-99d96752b66c?subscription-key=0c7bc56912de4c45b333f45a4a5d085e&timezoneOffset=240&verbose=true&q=');
 bot.recognizer(reco);
-//var model = process.env.model || '
-//bot.recognizer(new builder.LuisRecognizer(model));
-//var ldialog = new builder.LuisDialog('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/f9a13ee6-5e03-423a-ba25-99d96752b66c?subscription-key=0c7bc56912de4c45b333f45a4a5d085e&timezoneOffset=240&verbose=true&spellCheck=true&q=')
-//bot.add('/',ldialog);
 
-/*
-dialog.on('bookOnline', [
-    function (session, results) {
-        builder.Prompts.choice(session, "Hi " + session.userData.name + ", Would you like to book and appointment?",["Yes","No"]); 
-    },
-    function (session, results) {
-        if (results.response.entity === 'Yes') 
-        {
-            session.beginDialog('/appointment');
-        } else
-        {
-            session.userData.appointment = results.response;
-            builder.Prompts.text(session, "What else can i help you with?");
-        }
-    }
-]); */
 
 bot.dialog('/', [
-   /* function (session,args,next) {
-        builder.Prompts.text(session, "Hello... How can i help you?");
-        session.endDialog();
-    },
-    
-    // Process Luis 
-    
-    function (session,results,next) {
-       if (!session.userData.name)
-       {
-           session.beginDialog('/profilename');
-       } else
-       {
-           next();
-       }
-    }, */
-    
+ 
     function (session, results) {
         //session.userData.language = results.response.entity;
-        session.say("I could not understand that, I can help you in making online bookings or information/pricing about our the services.");
+        session.say("Sorry, I could not understand that, I can help you in making online bookings or information/pricing about our the services.");
         session.endDialog();
     }
 ]);
@@ -78,17 +42,26 @@ bot.dialog('/helloHi', [
               // Ask user for name if not already found
               session.beginDialog('/profilename');
             }  
-        builder.Prompts.confirm(session,session.userData.name + ", Would you like to book and appointment?"); 
+            else
+            {
+               //if we know user then ask basic intent of online booking
+               builder.Prompts.confirm("Welcome back "+session,session.userData.name + ", Would you like to book and appointment?"); 
+            }
     },
     function (session, results) {
-        //session.send("Results = "+ results.response);
-        if (results.response) 
+        
+        // Check if we arrvied from the prompt for appointment or not         
+        if (results.childId==="BotBuilder:prompt-confirm" && results.response) 
         {
             session.beginDialog('/appointment');
+        } else if (results.childId==="BotBuilder:prompt-confirm")
+        {
+            session.send("What else can i help you with?");
+            session.endDialog(); 
         } else
         {
-            session.userData.appointment = results.response;
-            builder.Prompts.text(session, "What else can i help you with?");
+            // if we did not arrive here from the prompt for booking ask intent 
+            session.send("How can i help you?");
             session.endDialog(); 
         }
     }
@@ -140,7 +113,6 @@ bot.dialog('/locationAddress', [
      matches: 'locationAddress',
      onInterrupted:function(session) { 
          session.send('Please provide booking exiting address');
-         
      }
 });    
     
@@ -163,16 +135,12 @@ bot.dialog('/appointment', [
         }  else next();
     },
     function (session, results, next) {
-        session.send("checking 12");
-        //session.userData.bookingDate = builder.EntityRecognizer.resolveTime("Sun May 28 2017 17:00:00 GMT+0000");
+        // session.send("checking 12");
+        session.userData.newBookingDate = new Date(session.userData.bookingDate);
         //session.send("checking 32");
-        if (session.userData.bookingDate.toLocaleTimeString()==="12:00:00 PM") 
+        if (session.userData.newBookingDate.toLocaleTimeString()==="12:00:00 PM") 
         {
-            session.send("ok 1211");
-        }
-        if (session.userData.bookingDate.toLocaleTimeString()==="12:00:00 PM") 
-        {
-            session.send("checking 12 ok");
+           // session.send("checking 12 ok");
             if(results.response.entity === "Morning") 
             {
                 builder.Prompts.choice(session,  " , Please pick a time",["10:00am","11:00am","12:00pm","1:00pm"]);
@@ -184,15 +152,16 @@ bot.dialog('/appointment', [
         } else 
         {
             
-            session.send("checking 12 not ok");
+         //   session.send("checking 12 not ok");
+        
             next();
         }
-        session.send("ending 12");
+       // session.send("ending 12");
     },
     function (session, results) {
         session.dialogData.bookingTime = results.response.entity;
         builder.Prompts.confirm(session, "Can we confirm appointment on"+ 
-           session.dialogData.bookingDate.toLocaleDateString()+" at "+session.dialogData.bookingTime);
+           session.dialogData.newbookingDate.toLocaleDateString()+" at "+session.dialogData.bookingTime);
     },
     function (session, results) {
         if (results)
@@ -268,7 +237,18 @@ bot.dialog('/goodBye', [
      matches: 'goodBye',
      onInterrupted:function(session) { 
          session.send('Exiting goodbye');
-         session.endDialog();
+     }
+}); 
+
+bot.dialog('/thankYou', [
+    function (session, arg,next) {
+       session.send("You are welcome");
+       session.endDialog();
+    }
+]).triggerAction({
+     matches: 'thankYou',
+     onInterrupted:function(session) { 
+         session.send('Exiting thank you');
      }
 }); 
 
