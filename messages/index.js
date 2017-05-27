@@ -5,7 +5,6 @@ https://docs.botframework.com/en-us/node/builder/chat/dialogs/#waterfall
 -----------------------------------------------------------------------------*/
 "use strict";
 var builder = require("botbuilder");
-//var restify = require('restify');
 var botbuilder_azure = require("botbuilder-azure");
 var path = require('path');
 
