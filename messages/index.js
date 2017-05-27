@@ -145,10 +145,10 @@ bot.dialog('/locationAddress', [
 });    
     
 bot.dialog('/appointment', [
-    function (session) {
+    function (session,results,next) {
         builder.Prompts.time(session, "When would you like your appointment?");
     },
-    function (session,results) {
+    function (session,results,next) {
         if (results.response)
         {
             session.send("The date is "+builder.EntityRecognizer.resolveTime([results.response]));
@@ -164,8 +164,8 @@ bot.dialog('/appointment', [
     },
     function (session, results, next) {
         session.send("checking 12");
-        session.userData.bookingDate = builder.EntityRecognizer.resolveTime("Sun May 28 2017 17:00:00 GMT+0000");
-        session.send("checking 32");
+        //session.userData.bookingDate = builder.EntityRecognizer.resolveTime("Sun May 28 2017 17:00:00 GMT+0000");
+        //session.send("checking 32");
         if (session.userData.bookingDate.toLocaleTimeString()==="12:00:00 PM") 
         {
             session.send("ok 1211");
@@ -183,6 +183,7 @@ bot.dialog('/appointment', [
             }
         } else 
         {
+            
             session.send("checking 12 not ok");
             next();
         }
