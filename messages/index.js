@@ -45,7 +45,7 @@ bot.dialog('/helloHi', [
             else
             {
                //if we know user then ask basic intent of online booking
-               builder.Prompts.confirm("Welcome back "+session,session.userData.name + ", Would you like to book and appointment?"); 
+               builder.Prompts.confirm(session,"Welcome back "+session.userData.name + ", Would you like to book and appointment?"); 
             }
     },
     function (session, results) {
