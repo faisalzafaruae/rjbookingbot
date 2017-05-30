@@ -45,7 +45,7 @@ bot.dialog('/helloHi', [
             else
             {
                //if we know user then ask basic intent of online booking
-               builder.Prompts.confirm(session,"Welcome back "+session.userData.name + ", Would you like to book and appointment?"); 
+               builder.Prompts.confirm(session,"Welcome back "+session.userData.name + ", Would you like to book an appointment?"); 
             }
     },
     function (session, results) {
@@ -206,7 +206,10 @@ bot.dialog('/priceHairServices', [
     
     function (session,arg,next) {
         session.send('Following are the prices');
+        var servicesEntity = builder.EntityRecognizer.findEntity(arg.intent.entities, 'HairService'); 
+        session.send('Following are the prices of '+servicesEntity.entity);
         session.endDialog();
+
     }
     
 ]).triggerAction({
