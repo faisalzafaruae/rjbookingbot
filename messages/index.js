@@ -36,7 +36,7 @@ bot.dialog('/', [
 
 bot.dialog('/helloHi', [
     function (session, arg,next) {
-       session.send("Hi, I am Claire your digital assitant from Rami Jabali Salon. I can help you get information and make bookings");
+       session.send("Hi, I am Claire your digital assistant from Rami Jabali Salon. I can help you get information and make bookings");
        if (!session.userData.name) 
             {
               // Ask user for name if not already found
