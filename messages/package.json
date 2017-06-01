@@ -12,7 +12,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Faisal Zafar",
   "license": "ISC",
   "repository": {
     "type": "git",
@@ -22,5 +22,5 @@
     "url": "https://github.com/faisalzafaruae/rjbookingbot/issues"
   },
   "homepage": "https://github.com/faisalzafaruae/rjbookingbot#readme",
-  "description": ""
+  "description": "This is a online booking bot for Rami Jabali Salon"
 }

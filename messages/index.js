@@ -82,10 +82,10 @@ bot.dialog('/bookOnline', [
               // Ask user for name if not already found
               session.beginDialog('/profilename');
             }  
-        builder.Prompts.confirm(session, "Hi " + session.userData.name + ", Would you like to book and appointment?"); 
+        builder.Prompts.confirm(session, "Hi " + session.userData.name + ", Would you like to book an appointment?"); 
     },
     function (session, results) {
-        if (results) 
+        if (results.response) 
         {
             session.beginDialog('/appointment');
         } else
@@ -123,21 +123,23 @@ bot.dialog('/appointment', [
     function (session,results,next) {
         if (results.response)
         {
-            session.send("The date is "+builder.EntityRecognizer.resolveTime([results.response]));
+            // Validate booking time is not before current date and not more than 6 months in advance 
+           // session.send("The date is "+builder.EntityRecognizer.resolveTime([results.response]));
             session.userData.bookingDate = builder.EntityRecognizer.resolveTime([results.response]);
-            session.send("The Date is "+session.userData.bookingDate.toLocaleDateString());
-            session.send("The Time is "+session.userData.bookingDate.toLocaleTimeString());
+           // session.send("The Date is "+session.userData.bookingDate.toLocaleDateString());
+           // session.send("The Time is "+session.userData.bookingDate.toLocaleTimeString());
             
         }
         
         if (session.userData.bookingDate.toLocaleTimeString()==="12:00:00 PM") {
-           builder.Prompts.choice(session, "Would you like to book in the morning or evening?",["Morning","Evening"]);
+           builder.Prompts.choice(session, "Would you like to book in the morning or evening of "+session.bookingDate.toLocaleDateString+" ?",["Morning","Evening"]);
         }  else next();
     },
     function (session, results, next) {
-        // session.send("checking 12");
+        
         session.userData.newBookingDate = new Date(session.userData.bookingDate);
-        //session.send("checking 32");
+        session.userData.TimeDetected = false; 
+        // Check if the date has time mentioned in it if not ask for time 
         if (session.userData.newBookingDate.toLocaleTimeString()==="12:00:00 PM") 
         {
            // session.send("checking 12 ok");
@@ -153,18 +155,25 @@ bot.dialog('/appointment', [
         {
             
          //   session.send("checking 12 not ok");
-        
+            session.userData.confirmedBookingDate = session.userData.newBookingDate.toLocaleDateString(); 
+            session.userData.confirmedBookingTime = session.userData.newBookingDate.toLocaleTimeString();
+            session.userData.TimeDetected = true; 
             next();
         }
        // session.send("ending 12");
     },
     function (session, results) {
-        session.dialogData.bookingTime = results.response.entity;
-        builder.Prompts.confirm(session, "Can we confirm appointment on"+ 
-           session.dialogData.newbookingDate.toLocaleDateString()+" at "+session.dialogData.bookingTime);
+        if (!session.userData.TimeDetected)
+        {
+            session.dialogData.bookingTime = results.response.entity;
+            session.userData.confirmedBookingTime = session.dialogData.bookingTime;
+        }
+        
+        builder.Prompts.confirm(session, "Can we confirm appointment on "+ 
+           session.userData.confirmedBookingDate+" at "+session.userData.confirmedBookingTime);
     },
     function (session, results) {
-        if (results)
+        if (results.response)
         {
            session.send("appointment confirmed, you will get an email notification");
         } else
