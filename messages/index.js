@@ -7,14 +7,29 @@ https://docs.botframework.com/en-us/node/builder/chat/dialogs/#waterfall
 var builder = require("botbuilder");
 var botbuilder_azure = require("botbuilder-azure");
 var path = require('path');
+const nodemailer = require('nodemailer');
 
 var useEmulator = (process.env.NODE_ENV == 'development');
+
 
 var connector = useEmulator ? new builder.ChatConnector() : new botbuilder_azure.BotServiceConnector({
     appId: process.env['MicrosoftAppId'], 
     appPassword: process.env['MicrosoftAppPassword'],
     stateEndpoint: process.env['BotStateEndpoint'],
     openIdMetadata: process.env['BotOpenIdMetadata']
+});
+
+// create reusable transporter object using the default SMTP transport
+let transporter = nodemailer.createTransport({
+    service: 'Outlook365',
+    host: 'smtp.office365.com',
+    port: '587',
+    auth: {
+        user: 'faisal@itech5.com',
+        pass: 'T13con2011'
+    },
+    secureConnection: false,
+    tls: { ciphers: 'SSLv3' }
 });
 
 var bot = new builder.UniversalBot(connector);
@@ -163,6 +178,7 @@ bot.dialog('/appointment', [
        // session.send("ending 12");
     },
     function (session, results) {
+        session.dialogData.appointmentConfirmed = false; 
         if (!session.userData.TimeDetected)
         {
             session.dialogData.bookingTime = results.response.entity;
@@ -170,12 +186,64 @@ bot.dialog('/appointment', [
         }
         
         builder.Prompts.confirm(session, "Can we confirm appointment on "+ 
-           session.userData.confirmedBookingDate+" at "+session.userData.confirmedBookingTime);
+           session.userData.confirmedBookingDate+" at "+session.userData.confirmedBookingTime+" ?");
     },
-    function (session, results) {
+    // Save Response 
+    function (session, results,next) {
+        
         if (results.response)
         {
+            session.dialogData.appointmentConfirmed = true; 
+            next();
+        }    else next();
+    },
+    // Check Name 
+    function (session, results,next) {
+        
+        if (!session.userData.name) 
+            {
+              // Ask user for name if not already found
+              session.beginDialog('/profilename');
+            }  else next();
+    },
+    // Check Phone Number
+    function (session, results,next) {
+        
+        if (!session.userData.phonenumber) 
+            {
+              // Ask user for name if not already found
+              session.beginDialog('/profilecontacts');
+            }  else next();
+    },
+    // Check Phone Email Address
+    function (session, results,next) {
+        
+        if (!session.userData.emailaddress) 
+            {
+              // Ask user for name if not already found
+              session.beginDialog('/profilecontacts');
+            }  else next();
+    },
+    function (session, results) {
+        if (session.dialogData.appointmentConfirmed)
+        {
            session.send("appointment confirmed, you will get an email notification");
+           // setup email data with unicode symbols
+           let mailOptions = {
+                from: '"Faisal Booking Bot" <faisal@itech5.com>', // sender address
+                to: 'nesrein@itech5.com, faisal.zafar@me.com', // list of receivers
+                subject: 'New Booking Confirmed from Bot - '+session.userData.name, // Subject line
+                text: 'A New booking is confirmed for '+session.userData.name+' on '+session.userData.confirmedBookingDate+' at '+session.userData.confirmedBookingTime, // plain text body
+                html: '<b>A New booking is confirmed for '+session.userData.name+' on '+session.userData.confirmedBookingDate+' at '+session.userData.confirmedBookingTime+'</b>' // html body
+           };
+
+           transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    return console.log(error);
+                }
+                console.log('Message %s sent: %s', info.messageId, info.response);
+            });
+
         } else
         {
            session.send("ok, your request is cancelled");
