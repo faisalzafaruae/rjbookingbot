@@ -282,10 +282,58 @@ bot.dialog('/profilecontacts', [
 bot.dialog('/priceHairServices', [
     
     function (session,arg,next) {
-        session.send('Following are the prices');
+        var msg = new builder.Message(session);
+        msg.attachmentLayout(builder.AttachmentLayout.carousel);
+
+        msg.attachments([
+        new builder.HeroCard(session)
+            .title("Hair Extensions")
+            .subtitle("Add Subtle Volume, For Fine Hair, For Medium to Subtle Thick Hair, For Thick Hair, For Extra Thick Hair")
+            .text("Starts from AED 1400 and Up")
+            .images([builder.CardImage.create(session, 'https://www.ramijabali.com/image/data/ext1.jpg')])
+            .buttons([
+                builder.CardAction.imBack(session, "/appointment", "Book Appointment")
+            ]),
+        new builder.HeroCard(session)
+            .title("Waxing")
+            .subtitle("Waxing all over, High than hips, Lovely legs")
+            .text("Price is AED 70 and Up")
+            .images([builder.CardImage.create(session, 'https://www.ramijabali.com/image/cache/data/3-338x216.jpg')])
+            .buttons([
+                builder.CardAction.imBack(session, "/appointment", "Book Appointment")
+            ]),
+        new builder.HeroCard(session)
+            .title("Perfect Nails")
+            .subtitle("Basic, Nail Colors, French, Long Lasting Shellac Colors, Shape & Polish")
+            .text("Price is from AED 70 to AED 140")
+            .images([builder.CardImage.create(session, 'https://www.ramijabali.com/image/cache/data/4-353x230.jpg')])
+            .buttons([
+                builder.CardAction.imBack(session, "/appointment", "Book Appointment")
+            ]),   
+         new builder.HeroCard(session)
+            .title("Hair Services")
+            .subtitle("Cut & Style, Hair Treatment, Hair Colors, Blondes")
+            .text("Prices start from AED 300 and Up")
+            .images([builder.CardImage.create(session, 'https://www.ramijabali.com/image/cache/data/shutterstock_133721231-min-353x230.jpg')])
+            .buttons([
+                builder.CardAction.imBack(session, "/appointment", "Book Appointment")
+            ])
+            
+        /*,
+          new builder.HeroCard(session)
+            .title("Classic Gray T-Shirt")
+            .subtitle("100% Soft and Luxurious Cotton")
+            .text("Price is $25 and carried in sizes (S, M, L, and XL)")
+            .images([builder.CardImage.create(session, 'http://petersapparel.parseapp.com/img/grayshirt.png')])
+            .buttons([
+                builder.CardAction.imBack(session, "/appointment", "Book Appointment")
+            ])*/ 
+        ]);
+        session.send(msg).endDialog();
+        /* session.send('Following are the prices');
         var servicesEntity = builder.EntityRecognizer.findEntity(arg.intent.entities, 'HairService'); 
         session.send('Following are the prices of '+servicesEntity.entity);
-        session.endDialog();
+        session.endDialog(); */ 
 
     }
     
