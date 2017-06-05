@@ -147,7 +147,7 @@ bot.dialog('/appointment', [
         }
         
         if (session.userData.bookingDate.toLocaleTimeString()==="12:00:00 PM") {
-           builder.Prompts.choice(session, "Would you like to book in the morning or evening of "+session.bookingDate.toLocaleDateString+" ?",["Morning","Evening"]);
+           builder.Prompts.choice(session, "Would you like to book in the morning or evening of "+session.userData.bookingDate.toLocaleDateString()+" ?",["Morning","Evening"]);
         }  else next();
     },
     function (session, results, next) {
