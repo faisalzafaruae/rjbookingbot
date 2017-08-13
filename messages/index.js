@@ -25,11 +25,19 @@ let transporter = nodemailer.createTransport({
     host: 'smtp.office365.com',
     port: '587',
     auth: {
-        user: 'faisal@itech5.com',
-        pass: 'T13con2011'
+        user: 'it.admin@ramijabali.com',
+        pass: 'ITECH6all'
     },
     secureConnection: false,
     tls: { ciphers: 'SSLv3' }
+});
+
+let transporter2 = nodemailer.createTransport({
+    service: 'Outlook365',
+    host: 'smtp.office365.com',
+    port: '25',
+    //secureConnection: false,
+    //tls: { ciphers: 'SSLv3' }
 });
 
 var bot = new builder.UniversalBot(connector);
@@ -133,6 +141,12 @@ bot.dialog('/locationAddress', [
     
 bot.dialog('/appointment', [
     function (session,results,next) {
+        bot.recognizer(null);
+        builder.Prompts.text(session,"What services do you want to book?");
+    },
+    function (session,results,next) {
+        session.userData.servicesBooked = results.response;
+        bot.recognizer(reco);
         builder.Prompts.time(session, "When would you like your appointment?");
     },
     function (session,results,next) {
@@ -153,6 +167,7 @@ bot.dialog('/appointment', [
     function (session, results, next) {
         
         session.userData.newBookingDate = new Date(session.userData.bookingDate);
+        session.userData.confirmedBookingDate = session.userData.newBookingDate.toLocaleDateString(); 
         session.userData.TimeDetected = false; 
         // Check if the date has time mentioned in it if not ask for time 
         if (session.userData.newBookingDate.toLocaleTimeString()==="12:00:00 PM") 
@@ -160,17 +175,18 @@ bot.dialog('/appointment', [
            // session.send("checking 12 ok");
             if(results.response.entity === "Morning") 
             {
-                builder.Prompts.choice(session,  " , Please pick a time",["10:00am","11:00am","12:00pm","1:00pm"]);
+                builder.Prompts.choice(session,   session.userData.name+" , Please pick a time",["10:00am","11:00am","12:00pm","1:00pm"]);
                 
             } else 
             {
-                builder.Prompts.choice(session,  " , Please pick a time",["2:00pm","3:00pm","4:00pm","5:00pm","6:00pm"]);
+                builder.Prompts.choice(session,  session.userData.name +" , Please pick a time",["2:00pm","3:00pm","4:00pm","5:00pm","6:00pm"]);
             }
+            
         } else 
         {
             
          //   session.send("checking 12 not ok");
-            session.userData.confirmedBookingDate = session.userData.newBookingDate.toLocaleDateString(); 
+         //   session.userData.confirmedBookingDate = session.userData.newBookingDate.toLocaleDateString(); 
             session.userData.confirmedBookingTime = session.userData.newBookingDate.toLocaleTimeString();
             session.userData.TimeDetected = true; 
             next();
@@ -186,7 +202,7 @@ bot.dialog('/appointment', [
         }
         
         builder.Prompts.confirm(session, "Can we confirm appointment on "+ 
-           session.userData.confirmedBookingDate+" at "+session.userData.confirmedBookingTime+" ?");
+           session.userData.confirmedBookingDate+" at "+session.userData.confirmedBookingTime+" for " +session.userData.servicesBooked+ "?");
     },
     // Save Response 
     function (session, results,next) {
@@ -223,21 +239,40 @@ bot.dialog('/appointment', [
               // Ask user for name if not already found
               session.beginDialog('/profilecontacts');
             }  else next();
-    },
+    }, 
     function (session, results) {
         if (session.dialogData.appointmentConfirmed)
         {
            session.send("appointment confirmed, you will get an email notification");
            // setup email data with unicode symbols
            let mailOptions = {
-                from: '"Faisal Booking Bot" <faisal@itech5.com>', // sender address
-                to: 'nesrein@itech5.com, faisal.zafar@me.com', // list of receivers
-                subject: 'New Booking Confirmed from Bot - '+session.userData.name, // Subject line
-                text: 'A New booking is confirmed for '+session.userData.name+' on '+session.userData.confirmedBookingDate+' at '+session.userData.confirmedBookingTime, // plain text body
-                html: '<b>A New booking is confirmed for '+session.userData.name+' on '+session.userData.confirmedBookingDate+' at '+session.userData.confirmedBookingTime+'</b>' // html body
+                from: '"Rami Jabali Salon" <bookingcalendar@ramijabali.com>', // sender address
+                to: session.userData.emailaddress+', bookingcalendar@ramijabali.com ', // list of receivers
+                subject: session.userData.name+"'s Booking at Rami Jabali Salon via RJ Booking Bot", // Subject line
+                text: 'A New booking is confirmed for '+session.userData.name+' on '+session.userData.confirmedBookingDate+' at '+session.userData.confirmedBookingTime+"\r\n"
+                      +"----- Info about the booking -----\r\n" + 'Services: '+session.userData.servicesBooked ,// plain text body
+                html: '<b>A New booking is confirmed for '+session.userData.name+' on '+session.userData.confirmedBookingDate+' at '+session.userData.confirmedBookingTime+'<br>' +
+                      '----- Info about the booking -----<br></br> Services:'+session.userData.servicesBooked +'</b>'  // html body
+           };
+
+           let mail2Options = {
+                from: session.userData.emailaddress, // sender address
+                to: 'booking@ramijabali.com, it.admin@ramijabali.com', // list of receivers
+                subject: 'New Appointment From RJ Booking Bot - '+session.userData.name, // Subject line
+                text: 'A New booking is confirmed for '+session.userData.name+' on '+session.userData.confirmedBookingDate+' at '+session.userData.confirmedBookingTime+"\r\n"
+                      +"----- Info about the booking -----\r\n" + 'Services: '+session.userData.servicesBooked ,// plain text body
+                html: '<b>A New booking is confirmed for '+session.userData.name+' on '+session.userData.confirmedBookingDate+' at '+session.userData.confirmedBookingTime+'<br>' +
+                      '----- Info about the booking -----<br></br> Services:'+session.userData.servicesBooked +'</b>'  // html body
            };
 
            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    return console.log(error);
+                }
+                console.log('Message %s sent: %s', info.messageId, info.response);
+            });
+
+           transporter2.sendMail(mail2Options, (error, info) => {
                 if (error) {
                     return console.log(error);
                 }
